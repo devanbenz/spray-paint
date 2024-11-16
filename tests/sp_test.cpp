@@ -79,9 +79,8 @@ TEST_F(SprayPaintTest, TestHuffNode) {
 }
 
 TEST_F(SprayPaintTest, HeapTests) {
-    auto min_heap = MinHeap<int>(10);
+    auto min_heap = MinHeap<int>(5);
     ASSERT_ANY_THROW(min_heap.is_leaf(-10)) << "should throw if neg";
-
-    // All values should be initialized to {}
-    for ()
+    ASSERT_NO_THROW(min_heap.put(5)) << "should not throw";
+    ASSERT_NO_THROW(min_heap.put(7)) << "should not throw";
 }

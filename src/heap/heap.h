@@ -15,6 +15,14 @@
 //Right sibling(r) =r+1; if r is odd and r+1<n
 
 template <typename T>
+concept Comparable = requires (T a, T b) {
+    {a > b} -> std::convertible_to<bool>;
+    {a < b} -> std::convertible_to<bool>;
+    {a == b} -> std::convertible_to<bool>;
+};
+
+template <typename T>
+requires Comparable<T>
 class BaseHeap {
 public:
     virtual void put(T value) = 0;
@@ -22,8 +30,6 @@ public:
     virtual T pop() = 0;
 
     virtual bool is_leaf(int idx) = 0;
-
-    virtual void sift_down(T value) = 0;
 protected:
     std::optional<int> parent_node(int);
 
@@ -33,8 +39,9 @@ protected:
 };
 
 template <typename T>
+requires Comparable<T>
 std::optional<int> BaseHeap<T>::parent_node(int idx) {
-    assert(idx >= 0);
+    if (idx < 0) { throw std::runtime_error("index must be 0 or greater"); };
     if (idx == 0) {
         return {};
     }
@@ -42,8 +49,9 @@ std::optional<int> BaseHeap<T>::parent_node(int idx) {
 }
 
 template <typename T>
+requires Comparable<T>
 std::optional<int> BaseHeap<T>::left_child_node(int idx, int cap) {
-    assert(idx >= 0);
+    if (idx < 0) { throw std::runtime_error("index must be 0 or greater"); };
     if ((2 * idx) + 1 < cap) {
         return (2 * idx) + 1;
     }
@@ -51,7 +59,8 @@ std::optional<int> BaseHeap<T>::left_child_node(int idx, int cap) {
 }
 
 template <typename T>
+requires Comparable<T>
 std::optional<int> BaseHeap<T>::right_child_node(int idx, int cap) {
-    assert(idx >= 0);
+    if (idx < 0) { throw std::runtime_error("index must be 0 or greater"); };
     return 0;
 }
