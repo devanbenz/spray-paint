@@ -82,5 +82,24 @@ TEST_F(SprayPaintTest, HeapTests) {
     auto min_heap = MinHeap<int>(5);
     ASSERT_ANY_THROW(min_heap.is_leaf(-10)) << "should throw if neg";
     ASSERT_NO_THROW(min_heap.put(5)) << "should not throw";
-    ASSERT_NO_THROW(min_heap.put(7)) << "should not throw";
+    ASSERT_EQ(min_heap.pop(), 5) << "should pop root node";
+    ASSERT_ANY_THROW(min_heap.pop()) << "should throw when there is no data in the heap";
+
+    min_heap.put(5);
+    min_heap.put(10);
+    min_heap.put(2);
+
+    ASSERT_EQ(min_heap.pop(), 2) << "should have gotten 2 when popping; internal structure should be 2 -> 5 -> 10";
+    ASSERT_EQ(min_heap.pop(), 5) << "should have gotten 5 when popping; internal structure should be 2 -> 5 -> 10";
+    ASSERT_EQ(min_heap.pop(), 10) << "should have gotten 10 when popping; internal structure should be 2 -> 5 -> 10";
+
+    min_heap.put(5);
+    min_heap.put(10);
+    min_heap.put(2);
+    min_heap.put(4);
+
+    ASSERT_EQ(min_heap.pop(), 2) << "should have gotten 2 when popping; internal structure should be 2 -> 5 -> 10";
+    ASSERT_EQ(min_heap.pop(), 4) << "should have gotten 4 when popping; internal structure should be 2 -> 5 -> 10";
+    ASSERT_EQ(min_heap.pop(), 5) << "should have gotten 5 when popping; internal structure should be 2 -> 5 -> 10";
+    ASSERT_EQ(min_heap.pop(), 10) << "should have gotten 10 when popping; internal structure should be 2 -> 5 -> 10";
 }

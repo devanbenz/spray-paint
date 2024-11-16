@@ -62,5 +62,8 @@ template <typename T>
 requires Comparable<T>
 std::optional<int> BaseHeap<T>::right_child_node(int idx, int cap) {
     if (idx < 0) { throw std::runtime_error("index must be 0 or greater"); };
-    return 0;
+    if ((2 * idx) + 2 < cap) {
+        return (2 * idx) + 2;
+    }
+    return {};
 }
