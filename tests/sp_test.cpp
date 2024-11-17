@@ -70,15 +70,14 @@ TEST_F(SprayPaintTest, TestHuffBuildCharSet) {
 }
 
 TEST_F(SprayPaintTest, TestHuffNode) {
-    auto node1 = SprayPaintNode(10, 'A', true);
+    auto node1 = SprayPaintNode(10, 'A');
 
-    ASSERT_EQ(node1.is_leaf(), true) << "Node was not created";
     ASSERT_EQ(node1.weight(), 10) << "Node was not created";
     ASSERT_EQ(node1.value(), 'A') << "Node was not created";
     ASSERT_ANY_THROW(node1.insert_node(nullptr))<< "should throw on insertion of nullptr";
 }
 
-TEST_F(SprayPaintTest, HeapTests) {
+TEST_F(SprayPaintTest, MinHeapTests) {
     auto min_heap = MinHeap<int>(5);
     ASSERT_ANY_THROW(min_heap.is_leaf(-10)) << "should throw if neg";
     ASSERT_NO_THROW(min_heap.put(5)) << "should not throw";
@@ -102,4 +101,20 @@ TEST_F(SprayPaintTest, HeapTests) {
     ASSERT_EQ(min_heap.pop(), 4) << "should have gotten 4 when popping; internal structure should be 2 -> 5 -> 10";
     ASSERT_EQ(min_heap.pop(), 5) << "should have gotten 5 when popping; internal structure should be 2 -> 5 -> 10";
     ASSERT_EQ(min_heap.pop(), 10) << "should have gotten 10 when popping; internal structure should be 2 -> 5 -> 10";
+}
+
+TEST_F(SprayPaintTest, TestMinHeapWithNode) {
+    auto node1 = SprayPaintNode(5, 'a');
+    auto node2 = SprayPaintNode(8, 'b');
+    auto node3 = SprayPaintNode(2, 'c');
+
+    auto min_heap = MinHeap<SprayPaintNode>(5);
+
+    ASSERT_NO_THROW(min_heap.put(node1)) << "should not throw for inserting node1";
+    ASSERT_NO_THROW(min_heap.put(node2)) << "should not throw for inserting node2";
+    ASSERT_NO_THROW(min_heap.put(node3)) << "should not throw for inserting node3";
+
+    ASSERT_EQ(min_heap.pop(), node3) << "should return node3";
+    ASSERT_EQ(min_heap.pop(), node1) << "should return node1";
+    ASSERT_EQ(min_heap.pop(), node2) << "should return node2";
 }

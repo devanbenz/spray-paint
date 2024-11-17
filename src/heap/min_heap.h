@@ -15,6 +15,8 @@ public:
     T pop() override;
 
     bool is_leaf(int idx) override;
+
+    T root();
 private:
     int cap_;
 
@@ -24,6 +26,15 @@ private:
 
     void sift_up(int, int);
 };
+
+template<typename T>
+requires Comparable<T>
+T MinHeap<T>::root() {
+    if (heap_.size() == 0) {
+        return nullptr;
+    }
+    return heap_[0];
+}
 
 template <typename T>
 requires Comparable<T>
@@ -74,9 +85,9 @@ T MinHeap<T>::pop() {
 
     auto left_child_node = this->left_child_node(0, heap_.size());
     auto right_child_node = this->right_child_node(0, heap_.size());
-    if (left_child_node.has_value() && heap_[0] > left_child_node.value()) {
+    if (left_child_node.has_value() && heap_[0] > heap_[left_child_node.value()]) {
         sift_down(0, left_child_node.value());
-    } else if (right_child_node.has_value() && heap_[0] > right_child_node.value()) {
+    } else if (right_child_node.has_value() && heap_[0] > heap_[right_child_node.value()]) {
         sift_down(0, right_child_node.value());
     }
 

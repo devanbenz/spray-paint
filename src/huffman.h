@@ -14,14 +14,7 @@ std::vector<std::pair<char, int>> build_set(std::unordered_map<char, int> &src);
 
 class SprayPaintNode {
 public:
-    SprayPaintNode(int weight, std::optional<char> val, bool leaf) :
-        weight_(weight), val_(val), leaf_(leaf), left_(nullptr), right_(nullptr) {};
-
-    void insert_node(SprayPaintNode* node);
-
-    [[nodiscard]] bool is_leaf() const {
-        return leaf_;
-    };
+    SprayPaintNode(int weight, std::optional<char> val) : weight_(weight), val_(val) {};
 
     [[nodiscard]] char value() const {
         if (val_.has_value()) {
@@ -34,10 +27,27 @@ public:
     [[nodiscard]] int weight() const {
         return weight_;
     }
+
+    bool operator>(SprayPaintNode cmp) const {
+        return this->weight_ > cmp.weight_;
+    }
+
+    bool operator<(SprayPaintNode cmp) const {
+        return this->weight_ > cmp.weight_;
+    }
+
+    bool operator>=(SprayPaintNode cmp) const {
+        return this->weight_ > cmp.weight_;
+    }
+
+    bool operator<=(SprayPaintNode cmp) const {
+        return this->weight_ > cmp.weight_;
+    }
+
+    bool operator==(SprayPaintNode cmp) const {
+        return this->weight_ == cmp.weight_;
+    }
 private:
     int weight_;
     std::optional<char> val_;
-    bool leaf_;
-    SprayPaintNode* left_;
-    SprayPaintNode* right_;
 };

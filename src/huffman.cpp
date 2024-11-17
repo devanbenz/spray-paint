@@ -33,22 +33,3 @@ std::vector<std::pair<char, int>> build_set(std::unordered_map<char, int> &src) 
 
     return pairs;
 }
-
-void SprayPaintNode::insert_node(SprayPaintNode *node) {
-    if (node == nullptr) {
-        throw std::runtime_error("failed to insert node; cannot insert nil value.");
-    }
-
-    auto head = (*this);
-    auto tail = (*this);
-
-    if (head.weight_ < node->weight_) {
-        // swap nodes - head will become the incoming node and the tail is now the head
-
-
-        // Since the source node's weight is less than the new node it will need to become an arm of the new node.
-        // Binary trees require that the left arm is lesser so the source node will need to become the left arm.
-
-        // Traverse tree if node is less than
-    }
-}
