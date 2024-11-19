@@ -17,6 +17,7 @@ add_library(spray_paint_lib
     src/huffman.cpp src/huffman.h
         src/heap/heap.h
         src/heap/min_heap.h
+        src/heap/max_heap.h
 )
 add_executable(spray_paint_test
     tests/sp_test.cpp

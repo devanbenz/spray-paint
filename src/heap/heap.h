@@ -36,6 +36,10 @@ protected:
     std::optional<int> left_child_node(int, int);
 
     std::optional<int> right_child_node(int, int);
+
+    std::optional<int> left_sibling_node(int, int);
+
+    std::optional<int> right_sibling_node(int, int);
 };
 
 template <typename T>
@@ -66,4 +70,19 @@ std::optional<int> BaseHeap<T>::right_child_node(int idx, int cap) {
         return (2 * idx) + 2;
     }
     return {};
+}
+
+
+//Left sibling(r) =r−1 if r is even and r≠0
+template <typename T>
+requires Comparable<T>
+std::optional<int> BaseHeap<T>::left_sibling_node(int, int) {
+
+}
+
+//Right sibling(r) =r+1; if r is odd and r+1<n
+template <typename T>
+requires Comparable<T>
+std::optional<int> BaseHeap<T>::right_sibling_node(int, int) {
+
 }

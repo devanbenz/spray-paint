@@ -19,17 +19,22 @@ std::unordered_map<char, int> build_char_map(std::ifstream is) {
     return char_map;
 }
 
-std::vector<std::pair<char, int>> build_set(std::unordered_map<char, int> &src) {
-    std::vector<std::pair<char, int>> pairs;
-    pairs.reserve(src.size());
-
-    for (auto i : src) {
-        pairs.emplace_back(i);
+SprayPaintTree SprayPaintTree::build() {
+    if (!this->charset_.has_value()) {
+        throw std::runtime_error("charset is not registered; please use .register_charset() to register a character set for encoding.");
     }
 
-    std::sort(pairs.begin(), pairs.end(), [=](std::pair<char, int> &a, std::pair<char, int> &b){
-        return a.second < b.second;
-    });
+    auto charset = this->charset_.value();
+    auto heap = MaxHeap<SprayPaintTree>(charset.size());
 
-    return pairs;
+    for (auto i : charset) {
+        auto nt = SprayPaintTree(i.second, i.first);
+        heap.put(std::move(nt));
+    }
+
+    while (heap.size() > 1) {
+        std::cout << heap.pop().root()->weight() << "\n";
+    }
+
+    return SprayPaintTree(5, 'B');
 }
