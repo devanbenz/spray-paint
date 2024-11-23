@@ -25,16 +25,28 @@ SprayPaintTree SprayPaintTree::build() {
     }
 
     auto charset = this->charset_.value();
-    auto heap = MaxHeap<SprayPaintTree>(charset.size());
+    auto min_heap = MinHeap<SprayPaintTree>(charset.size());
 
+    /* First we will build the min heap
+     * and then loop through all min_heap values
+     * adding them to the max_heap. This will
+     * ensure that not too much memory is used during
+     * compression.
+     * */
     for (auto i : charset) {
         auto nt = SprayPaintTree(i.second, i.first);
-        heap.put(std::move(nt));
+        min_heap.put(std::move(nt));
     }
 
-    while (heap.size() > 1) {
-        std::cout << heap.pop().root()->weight() << "\n";
+    /* For now I will assume that there are always two pop'ed variables available
+     * I will adjust if needed to account for odd numbered heaps.*/
+    while (min_heap.size() > 1) {
+        auto tmp1 = min_heap.pop().root().value();
+        auto tmp2 = min_heap.pop().root().value();
+        auto tmp3 = SprayPaintTree(std::move(tmp1), std::move(tmp2));
+        min_heap.put(std::move(tmp3));
     }
 
-    return SprayPaintTree(5, 'B');
+    auto tree = min_heap.pop();
+    return tree;
 }

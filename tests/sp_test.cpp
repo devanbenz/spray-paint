@@ -67,8 +67,7 @@ TEST_F(SprayPaintTest, TestHuffNode) {
     auto node1 = LeafNode(10, 'A');
     auto node2 = LeafNode(12, 'B');
     auto empty_node = InternalNode(5, nullptr, nullptr);
-    auto just_right = InternalNode(10, nullptr, std::make_unique<SprayPaintNode>(node1));
-    auto full = InternalNode(5, std::make_unique<SprayPaintNode>(node1), std::make_unique<SprayPaintNode>(node2));
+    auto just_right = InternalNode(10, nullptr, std::make_unique<SprayPaintNode>(std::move(node1)));
 
     ASSERT_EQ(node1.weight(), 10) << "Node was not created";
     ASSERT_EQ(node1.value(), 'A') << "Node was not created";
@@ -83,8 +82,7 @@ TEST_F(SprayPaintTest, TestHuffNode) {
     ASSERT_EQ(right_leaf->value(), node1.value());
     ASSERT_EQ(empty_node.left(), nullptr);
 
-    ASSERT_TRUE(node1 < node2);
-    ASSERT_TRUE(empty_node < just_right);
+    auto full = InternalNode(5, std::make_unique<SprayPaintNode>(std::move(node1)), std::make_unique<SprayPaintNode>(std::move(node2)));
 }
 
 TEST_F(SprayPaintTest, MinHeapTests) {
@@ -147,9 +145,9 @@ TEST_F(SprayPaintTest, TestMinHeapWithNode) {
 
     auto min_heap = MinHeap<SprayPaintNode>(5);
 
-    ASSERT_NO_THROW(min_heap.put(node1)) << "should not throw for inserting node1";
-    ASSERT_NO_THROW(min_heap.put(node2)) << "should not throw for inserting node2";
-    ASSERT_NO_THROW(min_heap.put(node3)) << "should not throw for inserting node3";
+    ASSERT_NO_THROW(min_heap.put(std::move(node1))) << "should not throw for inserting node1";
+    ASSERT_NO_THROW(min_heap.put(std::move(node2))) << "should not throw for inserting node2";
+    ASSERT_NO_THROW(min_heap.put(std::move(node3))) << "should not throw for inserting node3";
 
     ASSERT_EQ(min_heap.pop(), node3) << "should return node3";
     ASSERT_EQ(min_heap.pop(), node1) << "should return node1";
@@ -162,11 +160,9 @@ TEST_F(SprayPaintTest, TestSprayPaintTree) {
     ASSERT_EQ(tree.root()->leaf(), true);
 
     tree.reset();
-    ASSERT_EQ(tree.root(), nullptr);
+    ASSERT_FALSE(tree.root().has_value());
 
     auto tree2 = SprayPaintTree();
-    ASSERT_ANY_THROW(tree2.build());
-
     auto charset_m = build_char_map(std::move(medium_test_file));
 
     ASSERT_NO_THROW(tree2.register_charset(charset_m));

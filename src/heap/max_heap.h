@@ -1,3 +1,5 @@
+#pragma once
+
 #include "heap.h"
 
 #include <cassert>
@@ -15,8 +17,6 @@ public:
 
     T pop() override;
 
-    T pop_min();
-
     bool is_leaf(int idx) override;
 
     T root();
@@ -29,9 +29,9 @@ private:
 
     std::vector<T> heap_;
 
-    void sift_down(int, int);
+    void sift_down(int);
 
-    void sift_up(int, int);
+    void sift_up(int);
 };
 
 template<typename T>
@@ -94,11 +94,7 @@ void MaxHeap<T>::put(T value) {
 
     heap_.emplace_back(std::move(value));
     int cur_index = heap_.size() - 1;
-    auto parent_index = this->parent_node(cur_index);
-
-    if (parent_index.has_value()) {
-        sift_up(cur_index, parent_index.value());
-    }
+    sift_up(cur_index);
 }
 
 template <typename T>
@@ -117,31 +113,7 @@ T MaxHeap<T>::pop() {
     auto lowest_elem = std::move(heap_.back());
     heap_.pop_back();
 
-    auto left_child_node = this->left_child_node(0, heap_.size());
-    auto right_child_node = this->right_child_node(0, heap_.size());
-    if (left_child_node.has_value() && heap_[0] < heap_[left_child_node.value()]) {
-        sift_down(0, left_child_node.value());
-    } else if (right_child_node.has_value() && heap_[0] < heap_[right_child_node.value()]) {
-        sift_down(0, right_child_node.value());
-    }
-
-    return lowest_elem;
-}
-
-template <typename T>
-requires Comparable<T>
-T MaxHeap<T>::pop_min() {
-    // Need to swap the 0th element with the last element
-    if (heap_.size() <= 0) {
-        throw std::runtime_error("there is no root node");
-    }
-    if (heap_.size() == 1) {
-        auto root = std::move(heap_.back());
-        heap_.pop_back();
-        return root;
-    }
-    auto lowest_elem = std::move(heap_.back());
-    heap_.pop_back();
+    sift_down(0);
 
     return lowest_elem;
 }
@@ -150,32 +122,39 @@ template<typename T>
 requires Comparable<T>
 bool MaxHeap<T>::is_leaf(int idx) {
     if (idx < 0) { throw std::runtime_error("index must be 0 or greater"); };
-    auto lc = this->left_child_node(idx, heap_.capacity());
-    auto rc = this->right_child_node(idx, heap_.capacity());
+    auto lc = this->left_child_node(idx, heap_.size());
+    auto rc = this->right_child_node(idx, heap_.size());
     if (!rc.has_value() && !lc.has_value()) {
-        return false;
+        return true;
     }
 
-    return true;
+    return false;
 }
 
-//* Sift up will move an element from the bottom node [last index]
-// up the tree and swap its idx1 element out.*/
+/* Sift up will move an element from the bottom node [last index]
+ * up the tree and swap its idx1 element out.
+ * */
 template<typename T>
 requires Comparable<T>
-void MaxHeap<T>::sift_up(int idx1, int idx2) {
-    if (heap_.size() < idx1) { throw std::runtime_error("first index is larger then heap size"); };
-    if (heap_.size() < idx2) { throw std::runtime_error("second index is larger then heap size"); };
+void MaxHeap<T>::sift_up(int curr_index) {
+    if (heap_.size() < curr_index) { throw std::runtime_error("first index is larger then heap size"); };
 
-    while (heap_[idx1] > heap_[idx2]) {
-        std::swap(heap_[idx1], heap_[idx2]);
-        idx1 = idx2;
-        if (this->parent_node(idx1).has_value()) {
-            int val = this->parent_node(idx1).value();
-            idx2 = val;
+    while (true) {
+        auto parent_opt = this->parent_node(curr_index);
+        if (!parent_opt.has_value()) {
+            break;
         }
+
+        auto parent_index = parent_opt.value();
+        if (heap_[parent_index] > heap_[curr_index]) {
+            break;
+        }
+
+        std::swap(heap_[parent_index], heap_[curr_index]);
+        curr_index = parent_index;
     }
 }
+
 //* Sift down will be used when pop'ing the smallest element out
 // of the min heap. When an element is pop'ed the root node [first index]
 // is swapped with the last node. After swapping the new root is
@@ -183,22 +162,34 @@ void MaxHeap<T>::sift_up(int idx1, int idx2) {
 // */
 template<typename T>
 requires Comparable<T>
-void MaxHeap<T>::sift_down(int root, int lowest_leaf) {
-    if (heap_.size() < root) { throw std::runtime_error("first index is larger then heap size"); };
-    if (heap_.size() < lowest_leaf) { throw std::runtime_error("second index is larger then heap size"); };
-    std::swap(heap_[root], heap_[lowest_leaf]);
+void MaxHeap<T>::sift_down(int curr_index) {
+    if (heap_.size() < curr_index) { throw std::runtime_error("first index is larger then heap size"); };
 
-    while (heap_[root] < heap_[lowest_leaf]) {
-        std::swap(heap_[root], heap_[lowest_leaf]);
-        root = lowest_leaf;
-        if (this->right_child_node(root, heap_.size()).has_value()
-            && this->right_child_node(root, heap_.size()).value() > root) {
-            int val = this->right_child_node(root, heap_.size()).value();
-            lowest_leaf = val;
-        }else if (this->left_child_node(root, heap_.size()).has_value()
-                  && this->left_child_node(root, heap_.size()).value() > root) {
-            int val = this->left_child_node(root, heap_.size()).value();
-            lowest_leaf = val;
+    while (true) {
+        auto rc = this->right_child_node(curr_index, heap_.size());
+        auto lc = this->left_child_node(curr_index, heap_.size());
+
+        if (!rc.has_value() && !lc.has_value()) {
+            break;
+        } else if (!rc.has_value()) {
+            if (heap_[lc.value()] > heap_[curr_index]) {
+                std::swap(heap_[lc.value()], heap_[curr_index]);
+            }
+            break;
         }
+
+        if (heap_[rc.value()] >= heap_[lc.value()] && heap_[rc.value()] >= heap_[curr_index]) {
+            std::swap(heap_[rc.value()], heap_[curr_index]);
+            curr_index = rc.value();
+            continue;
+        }
+
+        if (heap_[lc.value()] >= heap_[rc.value()] && heap_[lc.value()] >= heap_[curr_index]) {
+            std::swap(heap_[lc.value()], heap_[curr_index]);
+            curr_index = lc.value();
+            continue;
+        }
+
+        break;
     }
 }

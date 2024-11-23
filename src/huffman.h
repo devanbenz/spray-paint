@@ -1,6 +1,7 @@
 #pragma once
 
 #include "heap/max_heap.h"
+#include "heap/min_heap.h"
 
 #include <unordered_map>
 #include <fstream>
@@ -24,23 +25,35 @@ public:
         return weight_;
     }
 
-    bool operator>(SprayPaintNode cmp) const {
+    [[nodiscard]] char value() const {
+        return value_;
+    }
+
+    [[nodiscard]] SprayPaintNode* left() const {
+        return left_.get();
+    };
+
+    [[nodiscard]] SprayPaintNode* right() const {
+        return right_.get();
+    };
+
+    bool operator>(const SprayPaintNode& cmp) const {
         return this->weight_ > cmp.weight_;
     }
 
-    bool operator<(SprayPaintNode cmp) const {
+    bool operator<(const SprayPaintNode& cmp) const {
         return this->weight_ < cmp.weight_;
     }
 
-    bool operator>=(SprayPaintNode cmp) const {
+    bool operator>=(const SprayPaintNode& cmp) const {
         return this->weight_ >= cmp.weight_;
     }
 
-    bool operator<=(SprayPaintNode cmp) const {
+    bool operator<=(const SprayPaintNode& cmp) const {
         return this->weight_ <= cmp.weight_;
     }
 
-    bool operator==(SprayPaintNode cmp) const {
+    bool operator==(const SprayPaintNode& cmp) const {
         return this->weight_ == cmp.weight_;
     }
 
@@ -50,6 +63,10 @@ protected:
     bool leaf_;
 
     char value_;
+
+    std::unique_ptr<SprayPaintNode> left_;
+
+    std::unique_ptr<SprayPaintNode> right_;
 };
 
 class InternalNode : public SprayPaintNode {
@@ -68,10 +85,6 @@ public:
     SprayPaintNode* right() {
         return right_.get();
     }
-private:
-    std::unique_ptr<SprayPaintNode> left_;
-
-    std::unique_ptr<SprayPaintNode> right_;
 };
 
 class LeafNode : public SprayPaintNode {
@@ -80,10 +93,6 @@ public:
         this->weight_ = weight;
         this->leaf_ = true;
         this->value_ = value;
-    };
-
-    [[nodiscard]] char value() const {
-        return this->value_;
     };
 };
 
@@ -95,17 +104,20 @@ public:
 
     SprayPaintTree(int weight, char val) {
         auto ln = LeafNode(weight, val);
-        this->root_ = std::make_unique<LeafNode>(ln);
+        this->root_ = std::make_unique<LeafNode>(std::move(ln));
     };
 
     SprayPaintTree(SprayPaintNode l, SprayPaintNode r) {
         int weight = l.weight() + r.weight();
-        auto in = InternalNode(weight, std::make_unique<SprayPaintNode>(l), std::make_unique<SprayPaintNode>(r));
+        auto in = InternalNode(weight,
+                               std::make_unique<SprayPaintNode>(std::move(l)),
+                               std::make_unique<SprayPaintNode>(std::move(r)));
+
         this->root_ = std::make_unique<InternalNode>(std::move(in));
     };
 
     friend std::ostream& operator<<(std::ostream& stream, const SprayPaintTree& o) {
-        stream << "weight=" << o.root_->weight();
+        stream << "weight=" << o.root_->weight() << " value=" << o.root_->value();
         return stream;
     }
 
@@ -144,8 +156,13 @@ public:
         return this->root_ == nullptr && cmp.root_ == nullptr;
     }
 
-    SprayPaintNode* root() {
-        return this->root_.get();
+    std::optional<SprayPaintNode> root() {
+        auto r = this->root_.get();
+        if (r == nullptr) {
+            return {};
+        }
+
+        return std::make_optional(std::move(*r));
     }
 
     // Reset will destroy the tree and completely reset it. This is destructive!
