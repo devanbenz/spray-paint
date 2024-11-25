@@ -14,9 +14,30 @@
 
 std::unordered_map<char, int> build_char_map(std::ifstream);
 
-
 class SprayPaintNode {
 public:
+    SprayPaintNode(const SprayPaintNode &spn) {
+        weight_ = spn.weight_;
+        value_ = spn.value_;
+        leaf_ = spn.leaf_;
+        if (spn.left_ != nullptr) {
+            left_ = spn.left_->clone();
+        } else {
+            left_ = nullptr;
+        }
+
+        if (spn.right_ != nullptr) {
+            right_ = spn.right_->clone();
+        } else {
+            right_ = nullptr;
+        }
+    }
+
+    SprayPaintNode(SprayPaintNode&&) noexcept = default;
+    SprayPaintNode& operator=(SprayPaintNode&&) noexcept = default;
+
+    SprayPaintNode& operator=(const SprayPaintNode&) = delete;
+
     [[nodiscard]] bool leaf() const {
         return leaf_;
     };
@@ -29,12 +50,20 @@ public:
         return value_;
     }
 
-    [[nodiscard]] SprayPaintNode* left() const {
-        return left_.get();
+
+    std::unique_ptr<SprayPaintNode> clone() {
+        auto spn = SprayPaintNode{*this};
+        return std::make_unique<SprayPaintNode>(spn);
+    }
+
+    std::unique_ptr<SprayPaintNode> left() {
+        auto a = std::move(left_);
+        return a;
     };
 
-    [[nodiscard]] SprayPaintNode* right() const {
-        return right_.get();
+    std::unique_ptr<SprayPaintNode> right() {
+        auto a = std::move(right_);
+        return a;
     };
 
     bool operator>(const SprayPaintNode& cmp) const {
@@ -71,25 +100,17 @@ protected:
 
 class InternalNode : public SprayPaintNode {
 public:
-    explicit InternalNode(int weight, std::unique_ptr<SprayPaintNode> l, std::unique_ptr<SprayPaintNode> r) : SprayPaintNode() {
+    explicit InternalNode(int weight, std::unique_ptr<SprayPaintNode> l, std::unique_ptr<SprayPaintNode> r) : SprayPaintNode(*this) {
         this->weight_ = weight;
         this->leaf_ = false;
         this->right_ = std::move(r);
         this->left_ = std::move(l);
     };
-
-    SprayPaintNode* left() {
-        return left_.get();
-    }
-
-    SprayPaintNode* right() {
-        return right_.get();
-    }
 };
 
 class LeafNode : public SprayPaintNode {
 public:
-    LeafNode(int weight, char value) : SprayPaintNode() {
+    LeafNode(int weight, char value) : SprayPaintNode(*this) {
         this->weight_ = weight;
         this->leaf_ = true;
         this->value_ = value;
@@ -102,19 +123,37 @@ public:
         this->root_ = nullptr;
     };
 
+    SprayPaintTree(const SprayPaintTree& t) {
+        this->root_ = t.root_->clone();
+        this->charset_ = t.charset_;
+    }
+
     SprayPaintTree(int weight, char val) {
         auto ln = LeafNode(weight, val);
-        this->root_ = std::make_unique<LeafNode>(std::move(ln));
+        this->root_ = std::move(std::make_unique<LeafNode>(std::move(ln)));
     };
 
     SprayPaintTree(SprayPaintNode l, SprayPaintNode r) {
         int weight = l.weight() + r.weight();
         auto in = InternalNode(weight,
-                               std::make_unique<SprayPaintNode>(std::move(l)),
-                               std::make_unique<SprayPaintNode>(std::move(r)));
+                               std::make_unique<SprayPaintNode>(l),
+                               std::make_unique<SprayPaintNode>(r));
 
-        this->root_ = std::make_unique<InternalNode>(std::move(in));
+        this->root_ = std::move(std::make_unique<InternalNode>(std::move(in)));
     };
+
+
+    // Explicitly default move operations
+    SprayPaintTree(SprayPaintTree&&) noexcept = default;
+    SprayPaintTree& operator=(SprayPaintTree&&) noexcept = default;
+
+    // Prevent copying if not needed
+    SprayPaintTree& operator=(const SprayPaintTree&) = delete;
+
+    [[nodiscard]] std::unique_ptr<SprayPaintTree> clone() const {
+        auto spt = SprayPaintTree{*this};
+        return std::make_unique<SprayPaintTree>(spt);
+    }
 
     friend std::ostream& operator<<(std::ostream& stream, const SprayPaintTree& o) {
         stream << "weight=" << o.root_->weight() << " value=" << o.root_->value();
@@ -162,7 +201,7 @@ public:
             return {};
         }
 
-        return std::make_optional(std::move(*r));
+        return std::make_optional(*r);
     }
 
     // Reset will destroy the tree and completely reset it. This is destructive!
@@ -170,14 +209,20 @@ public:
         this->root_ = nullptr;
     };
 
-    SprayPaintTree build();
+    void build();
 
+    void encode(const std::string&);
 
     void register_charset(std::unordered_map<char, int> charset){
         this->charset_.emplace(std::move(charset));
     };
+
+
+
 private:
+
     std::unique_ptr<SprayPaintNode> root_;
 
     std::optional<std::unordered_map<char, int>> charset_;
 };
+

@@ -67,7 +67,7 @@ TEST_F(SprayPaintTest, TestHuffNode) {
     auto node1 = LeafNode(10, 'A');
     auto node2 = LeafNode(12, 'B');
     auto empty_node = InternalNode(5, nullptr, nullptr);
-    auto just_right = InternalNode(10, nullptr, std::make_unique<SprayPaintNode>(std::move(node1)));
+    auto just_right = InternalNode(10, nullptr, node1.clone());
 
     ASSERT_EQ(node1.weight(), 10) << "Node was not created";
     ASSERT_EQ(node1.value(), 'A') << "Node was not created";
@@ -77,12 +77,15 @@ TEST_F(SprayPaintTest, TestHuffNode) {
     ASSERT_EQ(empty_node.right(), nullptr);
     ASSERT_EQ(empty_node.left(), nullptr);
     ASSERT_EQ(just_right.left(), nullptr);
-    auto right_leaf = (LeafNode*)(just_right.right());
+    auto right_leaf = just_right.right();
     ASSERT_EQ(right_leaf->weight(), node1.weight());
     ASSERT_EQ(right_leaf->value(), node1.value());
     ASSERT_EQ(empty_node.left(), nullptr);
 
-    auto full = InternalNode(5, std::make_unique<SprayPaintNode>(std::move(node1)), std::make_unique<SprayPaintNode>(std::move(node2)));
+    auto full = InternalNode(5, node1.clone(), node2.clone());
+    ASSERT_EQ(full.weight(), 5);
+    ASSERT_EQ(full.left()->weight(), 10);
+    ASSERT_EQ(full.right()->weight(), 12);
 }
 
 TEST_F(SprayPaintTest, MinHeapTests) {
@@ -145,13 +148,13 @@ TEST_F(SprayPaintTest, TestMinHeapWithNode) {
 
     auto min_heap = MinHeap<SprayPaintNode>(5);
 
-    ASSERT_NO_THROW(min_heap.put(std::move(node1))) << "should not throw for inserting node1";
-    ASSERT_NO_THROW(min_heap.put(std::move(node2))) << "should not throw for inserting node2";
-    ASSERT_NO_THROW(min_heap.put(std::move(node3))) << "should not throw for inserting node3";
+    ASSERT_NO_THROW(min_heap.put(node1)) << "should not throw for inserting node1";
+    ASSERT_NO_THROW(min_heap.put(node2)) << "should not throw for inserting node2";
+    ASSERT_NO_THROW(min_heap.put(node3)) << "should not throw for inserting node3";
 
-    ASSERT_EQ(min_heap.pop(), node3) << "should return node3";
-    ASSERT_EQ(min_heap.pop(), node1) << "should return node1";
-    ASSERT_EQ(min_heap.pop(), node2) << "should return node2";
+    ASSERT_EQ(min_heap.pop().weight(), node3.weight()) << "should return node3";
+    ASSERT_EQ(min_heap.pop().weight(), node1.weight()) << "should return node1";
+    ASSERT_EQ(min_heap.pop().weight(), node2.weight()) << "should return node2";
 }
 
 TEST_F(SprayPaintTest, TestSprayPaintTree) {
@@ -167,4 +170,6 @@ TEST_F(SprayPaintTest, TestSprayPaintTree) {
 
     ASSERT_NO_THROW(tree2.register_charset(charset_m));
     ASSERT_NO_THROW(tree2.build());
+    std::cout << "tree class size; " << sizeof(tree2) << "\n";
+    ASSERT_NO_THROW(tree2.encode("../tests/test.spz"));
 }
