@@ -1,26 +1,28 @@
 cmake_minimum_required(VERSION 3.29)
 project(spray_paint)
 
-set(CMAKE_CXX_STANDARD 26)
+set(CMAKE_CXX_STANDARD 23)
 
 include(FetchContent)
 FetchContent_Declare(
         googletest
         URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
 )
-
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 add_library(spray_paint_lib
-    src/huffman.cpp src/huffman.h
+        src/huffman.cpp
+        src/huffman.h
         src/heap/heap.h
         src/heap/min_heap.h
         src/heap/max_heap.h
+        src/cereal.hpp
 )
+
 add_executable(spray_paint_test
-    tests/sp_test.cpp
+        tests/sp_test.cpp
 )
 target_link_libraries(spray_paint_test
         GTest::gtest_main

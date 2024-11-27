@@ -86,6 +86,10 @@ public:
         return this->weight_ == cmp.weight_;
     }
 
+    template<class Archive>
+    void serialize(Archive& archive) {
+        archive(weight_, leaf_, value_, left_, right_);
+    }
 protected:
     int weight_;
 
@@ -217,8 +221,10 @@ public:
         this->charset_.emplace(std::move(charset));
     };
 
-
-
+    template<class Archive>
+    void serialize(Archive& archive) {
+        archive(root_, charset_);
+    }
 private:
 
     std::unique_ptr<SprayPaintNode> root_;

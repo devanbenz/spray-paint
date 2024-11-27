@@ -49,18 +49,17 @@ void SprayPaintTree::build() {
     this->root_.swap(tree);
 }
 
-SprayPaintTree read_encoder(const std::string& file_name) {
-    SprayPaintTree data;
-    std::ifstream file(file_name);
-
-}
+//SprayPaintTree read_encoder(const std::string& file_name) {
+//    SprayPaintTree data;
+//    std::ifstream file(file_name);
+//}
+//
 
 void write_encoder(const SprayPaintTree& data, const std::string& file_name) {
     std::ofstream file(file_name);
-    file << data;
+    auto serialized =
 }
 
-// todo: implement DFS to get path of each leaf node
 void generate_encodings(std::unique_ptr<SprayPaintNode> node, std::unordered_map<char, std::string>& map, const std::string& path) {
     if (node == nullptr) {
         return;
