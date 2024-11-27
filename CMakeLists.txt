@@ -18,9 +18,7 @@ add_library(spray_paint_lib
         src/heap/heap.h
         src/heap/min_heap.h
         src/heap/max_heap.h
-        src/cereal.hpp
 )
-
 add_executable(spray_paint_test
         tests/sp_test.cpp
 )

@@ -56,8 +56,7 @@ void SprayPaintTree::build() {
 //
 
 void write_encoder(const SprayPaintTree& data, const std::string& file_name) {
-    std::ofstream file(file_name);
-    auto serialized =
+
 }
 
 void generate_encodings(std::unique_ptr<SprayPaintNode> node, std::unordered_map<char, std::string>& map, const std::string& path) {
@@ -85,7 +84,47 @@ void SprayPaintTree::encode(const std::string& path) {
     std::unordered_map<char, std::string> ret;
     auto cloned_tree = this->clone();
     generate_encodings(std::move(cloned_tree->root_), ret, "");
+}
 
+void SprayPaintNode::serialize(std::ofstream& os) {
+    os.write(reinterpret_cast<char*>(&this->weight_), sizeof(this->weight_));
+    os.write(reinterpret_cast<char*>(&this->value_), sizeof(this->value_));
+    os.write(reinterpret_cast<char*>(&this->leaf_), sizeof(this->leaf_));
 
+    bool hasLeft = (left_ != nullptr);
+    bool hasRight = (right_ != nullptr);
+    os.write(reinterpret_cast<const char*>(&hasLeft), sizeof(hasLeft));
+    os.write(reinterpret_cast<const char*>(&hasRight), sizeof(hasRight));
+
+    if (hasLeft) left_->serialize(os);
+    if (hasRight) right_->serialize(os);
+}
+
+void SprayPaintTree::serialize(std::ofstream& os) {
+    this->root_->serialize(os);
+}
+
+std::unique_ptr<SprayPaintNode> SprayPaintNode::deserialize(std::ifstream& in) {
+    auto node = std::make_unique<SprayPaintNode>();
+
+    in.read(reinterpret_cast<char*>(&node->weight_), sizeof(node->weight_));
+    in.read(reinterpret_cast<char*>(&node->value_), sizeof(node->value_));
+    in.read(reinterpret_cast<char*>(&node->leaf_), sizeof(node->leaf_));
+
+    bool hasLeft = false, hasRight = false;
+    in.read(reinterpret_cast<char*>(&hasLeft), sizeof(hasLeft));
+    in.read(reinterpret_cast<char*>(&hasRight), sizeof(hasRight));
+
+    if (hasLeft) node->left_ = deserialize(in);
+    if (hasRight) node->right_ = deserialize(in);
+
+    return node;
+}
+
+SprayPaintTree SprayPaintTree::deserialize(std::ifstream& in) {
+    SprayPaintTree sprayPaintTree;
+    auto root = std::make_unique<SprayPaintNode>();
+    sprayPaintTree.root_ = root->deserialize(in);
+    return sprayPaintTree;
 }
 

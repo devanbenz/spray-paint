@@ -16,6 +16,8 @@ std::unordered_map<char, int> build_char_map(std::ifstream);
 
 class SprayPaintNode {
 public:
+    SprayPaintNode() = default;
+
     SprayPaintNode(const SprayPaintNode &spn) {
         weight_ = spn.weight_;
         value_ = spn.value_;
@@ -86,10 +88,9 @@ public:
         return this->weight_ == cmp.weight_;
     }
 
-    template<class Archive>
-    void serialize(Archive& archive) {
-        archive(weight_, leaf_, value_, left_, right_);
-    }
+    void serialize(std::ofstream& os);
+
+    std::unique_ptr<SprayPaintNode> deserialize(std::ifstream& is);
 protected:
     int weight_;
 
@@ -221,14 +222,16 @@ public:
         this->charset_.emplace(std::move(charset));
     };
 
-    template<class Archive>
-    void serialize(Archive& archive) {
-        archive(root_, charset_);
-    }
-private:
+    void serialize(std::ofstream& os);
 
+    static SprayPaintTree deserialize(std::ifstream& is);
+private:
     std::unique_ptr<SprayPaintNode> root_;
 
     std::optional<std::unordered_map<char, int>> charset_;
 };
 
+class SprayPaintFile {
+private:
+
+};
