@@ -91,13 +91,13 @@ void SprayPaintNode::serialize(std::ofstream& os) {
     os.write(reinterpret_cast<char*>(&this->value_), sizeof(this->value_));
     os.write(reinterpret_cast<char*>(&this->leaf_), sizeof(this->leaf_));
 
-    bool hasLeft = (left_ != nullptr);
-    bool hasRight = (right_ != nullptr);
-    os.write(reinterpret_cast<const char*>(&hasLeft), sizeof(hasLeft));
-    os.write(reinterpret_cast<const char*>(&hasRight), sizeof(hasRight));
+    bool has_left = (left_ != nullptr);
+    bool has_right = (right_ != nullptr);
+    os.write(reinterpret_cast<const char*>(&has_left), sizeof(has_left));
+    os.write(reinterpret_cast<const char*>(&has_right), sizeof(has_right));
 
-    if (hasLeft) left_->serialize(os);
-    if (hasRight) right_->serialize(os);
+    if (has_left) left_->serialize(os);
+    if (has_right) right_->serialize(os);
 }
 
 void SprayPaintTree::serialize(std::ofstream& os) {
@@ -111,20 +111,20 @@ std::unique_ptr<SprayPaintNode> SprayPaintNode::deserialize(std::ifstream& in) {
     in.read(reinterpret_cast<char*>(&node->value_), sizeof(node->value_));
     in.read(reinterpret_cast<char*>(&node->leaf_), sizeof(node->leaf_));
 
-    bool hasLeft = false, hasRight = false;
-    in.read(reinterpret_cast<char*>(&hasLeft), sizeof(hasLeft));
-    in.read(reinterpret_cast<char*>(&hasRight), sizeof(hasRight));
+    bool has_left = false, has_right = false;
+    in.read(reinterpret_cast<char*>(&has_left), sizeof(has_left));
+    in.read(reinterpret_cast<char*>(&has_right), sizeof(has_right));
 
-    if (hasLeft) node->left_ = deserialize(in);
-    if (hasRight) node->right_ = deserialize(in);
+    if (has_left) node->left_ = deserialize(in);
+    if (has_right) node->right_ = deserialize(in);
 
     return node;
 }
 
 SprayPaintTree SprayPaintTree::deserialize(std::ifstream& in) {
-    SprayPaintTree sprayPaintTree;
+    SprayPaintTree spray_paint_tree;
     auto root = std::make_unique<SprayPaintNode>();
-    sprayPaintTree.root_ = root->deserialize(in);
-    return sprayPaintTree;
+    spray_paint_tree.root_ = root->deserialize(in);
+    return spray_paint_tree;
 }
 
