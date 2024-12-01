@@ -13,20 +13,18 @@
 // Write the encoded tree and text to an output field
 
 void usage() {
-    std::cout << "Usage: ./spraypaint <flag> <filename> <output>\n"
+    std::cout << "Usage: ./spray_paint <flag> <filename> <output>\n"
               << "\n"
-              << "spraypaint is a file compression and decompression tool.\n"
+              << "spray_paint is a file compression and decompression tool.\n"
               << "\n"
               << "Arguments:\n"
               << "  <flag>       d or c for [d]ecompress or [c]ompress.\n"
               << "  <filename>   The name of the file to compress or decompress.\n"
-              << "  <output>     The name of the output file for compression"
+              << "  <output>     The name of the output file for compression or decompression."
               << "\n"
-              << "Example:\n"
-              << "  ./spraypaint example.txt example.spz\n\n"
-              << "Note:\n"
-              << "  - If the file is already compressed, spraypaint will attempt to decompress it.\n"
-              << "  - If the file is uncompressed, spraypaint will compress it.\n";
+              << "Examples:\n"
+              << "  ./spraypaint c example.txt example.spz\n"
+              << "  ./spraypaint d example.spz example.txt\n\n";
 }
 
 int main(int argc, char* argv[]) {
@@ -36,28 +34,22 @@ int main(int argc, char* argv[]) {
     }
 
     auto flag = argv[1];
-    auto filename = argv[2];
+    auto input = argv[2];
     auto output= argv[3];
 
-    if (strcmp(flag, "d")  != 0 || strcmp(flag, "c") != 0) {
+    if (strcmp(flag, "d")  != 0 && strcmp(flag, "c") != 0) {
         usage();
         return 0;
     }
 
-    std::ifstream input_file(filename);
-    if (!input_file.is_open()) {
-        throw std::runtime_error("Invalid file. Please make sure the file exists.");
-    }
-
-    auto char_map = build_char_map(std::move(input_file));
     SprayPaintTree tree;
+    auto spf = SprayPaintFile(std::move(tree), output, input);
 
-    tree.register_charset(char_map);
-    tree.build();
-
-    std::ofstream outfile (output,std::ofstream::binary);
-    tree.serialize(outfile);
-    outfile.close();
+    if (strcmp(flag, "d") == 0) {
+        spf.read();
+    } else if (strcmp(flag, "c") == 0) {
+        spf.write();
+    }
 
     return 0;
 }

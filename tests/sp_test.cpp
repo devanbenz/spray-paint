@@ -7,7 +7,7 @@ class SprayPaintTest : public ::testing::Test {
 protected:
     void SetUp() override {
         test_file.open("../tests/test.txt");
-        large_test_file.open("../tests/135-0.txt");
+        large_test_file.open("../tests/lm.txt");
         medium_test_file.open("../tests/test_two.txt");
         ASSERT_TRUE(test_file.is_open()) << "Could not open test file";
         ASSERT_TRUE(large_test_file.is_open()) << "Could not open test file";
@@ -44,7 +44,7 @@ TEST_F(SprayPaintTest, TestHuffBuildCharMap) {
     test_file.clear();
     test_file.seekg(0);
 
-    auto char_m = build_char_map(std::move(test_file));
+    auto char_m = build_char_map(test_file);
     ASSERT_FALSE(char_m.empty()) << "Character map is empty";
 
     auto h = char_m.find('h');
@@ -166,10 +166,11 @@ TEST_F(SprayPaintTest, TestSprayPaintTree) {
     ASSERT_FALSE(tree.root().has_value());
 
     auto tree2 = SprayPaintTree();
-    auto charset_m = build_char_map(std::move(medium_test_file));
+    auto charset_m = build_char_map(large_test_file);
 
     ASSERT_NO_THROW(tree2.register_charset(charset_m));
     ASSERT_NO_THROW(tree2.build());
-    std::cout << "tree class size; " << sizeof(tree2) << "\n";
-    ASSERT_NO_THROW(tree2.encode("../tests/test.spz"));
+
+    auto spf = SprayPaintFile(std::move(tree2), "/Users/devan/Documents/Projects/spray-paint/tests/135-0.txt", "t3");
+    spf.write();
 }

@@ -12,7 +12,7 @@
 #include <optional>
 #include <utility>
 
-std::unordered_map<char, int> build_char_map(std::ifstream);
+std::unordered_map<char, int> build_char_map(std::ifstream&);
 
 class SprayPaintNode {
 public:
@@ -63,9 +63,19 @@ public:
         return a;
     };
 
+    // UNSAFE: This is direct pointer access
+    SprayPaintNode* left_ref() {
+        return this->left_.get();
+    };
+
     std::unique_ptr<SprayPaintNode> right() {
         auto a = std::move(right_);
         return a;
+    };
+
+    // UNSAFE: This is direct pointer access
+    SprayPaintNode* right_ref() {
+        return this->right_.get();
     };
 
     bool operator>(const SprayPaintNode& cmp) const {
@@ -209,6 +219,10 @@ public:
         return std::make_optional(*r);
     }
 
+    SprayPaintNode* root_ref() {
+        return this->root_.get();
+    }
+
     // Reset will destroy the tree and completely reset it. This is destructive!
     void reset() {
         this->root_ = nullptr;
@@ -216,7 +230,7 @@ public:
 
     void build();
 
-    void encode(const std::string&);
+    std::unordered_map<char, std::vector<int>> encode();
 
     void register_charset(std::unordered_map<char, int> charset){
         this->charset_.emplace(std::move(charset));
@@ -232,6 +246,17 @@ private:
 };
 
 class SprayPaintFile {
-private:
+public:
+    SprayPaintFile(SprayPaintTree tree, std::string  out, std::string in)
+            : header_(std::move(tree)), out_file_name_(std::move(out)), input_file_name_(std::move(in)) {}
 
+    void write();
+
+    void read();
+private:
+    SprayPaintTree header_;
+
+    std::string out_file_name_;
+
+    std::string input_file_name_;
 };

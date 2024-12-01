@@ -12,6 +12,10 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 enable_testing()
 
+find_package(Boost REQUIRED)
+
+include_directories(${Boost_INCLUDE_DIRS})
+
 add_library(spray_paint_lib
         src/huffman.cpp
         src/huffman.h
@@ -19,6 +23,7 @@ add_library(spray_paint_lib
         src/heap/min_heap.h
         src/heap/max_heap.h
 )
+target_link_libraries(spray_paint_lib ${Boost_LIBRARIES})
 add_executable(spray_paint_test
         tests/sp_test.cpp
 )
