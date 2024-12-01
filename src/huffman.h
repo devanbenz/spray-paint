@@ -101,6 +101,8 @@ public:
     void serialize(std::ofstream& os);
 
     std::unique_ptr<SprayPaintNode> deserialize(std::ifstream& is);
+
+    size_t calculate_size() const;
 protected:
     int weight_;
 
@@ -239,6 +241,8 @@ public:
     void serialize(std::ofstream& os);
 
     static SprayPaintTree deserialize(std::ifstream& is);
+
+    size_t size() const;
 private:
     std::unique_ptr<SprayPaintNode> root_;
 

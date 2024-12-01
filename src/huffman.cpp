@@ -66,6 +66,20 @@ void SprayPaintTree::serialize(std::ofstream& os) {
     this->root_->serialize(os);
 }
 
+size_t SprayPaintTree::size() const {
+    return this->root_->calculate_size();
+}
+
+size_t SprayPaintNode::calculate_size() const {
+    size_t size = sizeof(this->weight_) + sizeof(this->value_) + sizeof(this->leaf_);
+    bool has_left = (left_ != nullptr);
+    bool has_right = (right_ != nullptr);
+    size += sizeof(has_left) + sizeof(has_right);
+    if (has_left) size += left_->calculate_size();
+    if (has_right) size += right_->calculate_size();
+    return size;
+}
+
 std::unique_ptr<SprayPaintNode> SprayPaintNode::deserialize(std::ifstream& in) {
     auto node = std::make_unique<SprayPaintNode>();
 
@@ -123,6 +137,8 @@ std::unordered_map<char, std::vector<int>> SprayPaintTree::encode() {
     return ret;
 }
 
+// TODO: There seems to be a problem with serialization. For some reason the Tree in read()
+// is fucked up. I need to figure out what's going on with that.
 void SprayPaintFile::write() {
     std::ifstream input(this->input_file_name_);
     std::ofstream output(this->out_file_name_, std::ios::binary);
@@ -136,14 +152,12 @@ void SprayPaintFile::write() {
 
     // Write the header first
     this->header_.serialize(output);
-    output.clear();
-    output.seekp(sizeof(this->header_), std::ios::beg);
 
-    input.clear();
-    input.seekg(0, std::ios::beg);
+    input.close();
+    std::ifstream in(this->input_file_name_);
 
     char c;
-    while (input.get(c)) {
+    while (in.get(c)) {
         auto v = encoder_lut.find(c);
         if (v == encoder_lut.end()) {
             throw std::runtime_error("Character was not found, there is a problem with the encoder.");
@@ -189,14 +203,15 @@ void SprayPaintFile::write() {
         output << write_char;
     }
 
-    input.close();
+    in.close();
     output.close();
 }
 
 void SprayPaintFile::read() {
     this->header_.reset();
 
-    std::ifstream input(this->input_file_name_);
+    std::ifstream input(this->input_file_name_, std::ios::binary);
+    std::ofstream output(this->out_file_name_);
 
     this->header_ = SprayPaintTree::deserialize(input);
     auto head = std::make_unique<SprayPaintNode>(this->header_.clone()->root().value());
@@ -211,10 +226,8 @@ void SprayPaintFile::read() {
     input.seekg(-1, std::ios::end);
     input.get(end_bit);
 
-    auto tree_size = sizeof(this->header_);
+    auto tree_size = this->header_.size();
     input.seekg(tree_size, std::ios::beg);
-
-    std::vector<char> tmp_chars;
 
     char c = 0;
     int curr_byte = tree_size;
@@ -222,16 +235,15 @@ void SprayPaintFile::read() {
         // Increment current byte
         input.get(c);
         ++curr_byte;
-        input.seekg(curr_byte, std::ios::beg);
         std::bitset<8> as_bits(c);
-
+        std::cout << "curr bits: " << as_bits << std::endl;
         if ((curr_byte - length) > (length - 1)) {
             break;
         } else if ((curr_byte - (length - 1)) == 0) {
             for (int i = as_bits.size() - 1; i >= (0 + (int)end_bit); --i) {
                 if (as_bits[i] == 0) {
                     if (tail->left_ref()->leaf()) {
-                        tmp_chars.push_back(tail->left_ref()->value());
+                        output << tail->left_ref()->value();
                         tail = head->clone();
                         continue;
                     } else {
@@ -240,7 +252,7 @@ void SprayPaintFile::read() {
                     }
                 } else if (as_bits[i] == 1) {
                     if (tail->right_ref()->leaf()) {
-                        tmp_chars.push_back(tail->right_ref()->value());
+                        output << tail->right_ref()->value();
                         tail = head->clone();
                         continue;
                     } else {
@@ -256,7 +268,7 @@ void SprayPaintFile::read() {
         for (int i = as_bits.size() - 1; i >= 0; --i) {
             if (as_bits[i] == 0) {
                 if (tail->left_ref()->leaf()) {
-                    tmp_chars.push_back(tail->left_ref()->value());
+                    output << tail->left_ref()->value();
                     tail = head->clone();
                     continue;
                 } else {
@@ -265,7 +277,7 @@ void SprayPaintFile::read() {
                 }
             } else if (as_bits[i] == 1) {
                 if (tail->right_ref()->leaf()) {
-                    tmp_chars.push_back(tail->right_ref()->value());
+                    output << tail->right_ref()->value();
                     tail = head->clone();
                     continue;
                 } else {
@@ -276,6 +288,5 @@ void SprayPaintFile::read() {
         }
     }
 
-    std::cout << "\n";
-    input.close();
+    output.close();
 }

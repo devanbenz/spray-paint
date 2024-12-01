@@ -158,6 +158,7 @@ TEST_F(SprayPaintTest, TestMinHeapWithNode) {
 }
 
 TEST_F(SprayPaintTest, TestSprayPaintTree) {
+    std::string tmp_file = "tmp_serde";
     auto tree = SprayPaintTree(5, 'a');
     ASSERT_EQ(tree.root()->weight(), 5);
     ASSERT_EQ(tree.root()->leaf(), true);
@@ -166,11 +167,32 @@ TEST_F(SprayPaintTest, TestSprayPaintTree) {
     ASSERT_FALSE(tree.root().has_value());
 
     auto tree2 = SprayPaintTree();
-    auto charset_m = build_char_map(large_test_file);
+    auto charset_m = build_char_map(medium_test_file);
 
     ASSERT_NO_THROW(tree2.register_charset(charset_m));
     ASSERT_NO_THROW(tree2.build());
+    ASSERT_NO_THROW(tree2.encode());
 
-    auto spf = SprayPaintFile(std::move(tree2), "/Users/devan/Documents/Projects/spray-paint/tests/135-0.txt", "t3");
+    std::ofstream tmp_strm(tmp_file);
+    auto tree3 = tree2.clone();
+    ASSERT_NO_THROW(tree2.serialize(tmp_strm));
+    tmp_strm.close();
+
+    std::ifstream tmp_in(tmp_file);
+    auto tree_c = SprayPaintTree::deserialize(tmp_in);
+    tmp_in.close();
+
+    auto a = tree3->encode();
+    auto b = tree_c.encode();
+
+    ASSERT_EQ(a, b);
+}
+
+TEST_F(SprayPaintTest, TestScratch) {
+    SprayPaintTree tree1;
+    SprayPaintTree tree2;
+    auto spf = SprayPaintFile(std::move(tree1), "t3", "/Users/devan/Documents/Projects/spray-paint/tests/lm.txt");
+    auto spf2 = SprayPaintFile(std::move(tree2), "/Users/devan/Documents/Projects/spray-paint/tests/tt2.txt", "t3");
     spf.write();
+    spf2.read();
 }
